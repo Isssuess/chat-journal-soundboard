@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { CalendarIcon, Settings, LogOut, Menu, X, Mic, Send, ChevronLeft, Home } from "lucide-react";
+import { CalendarIcon, Settings, LogOut, Menu, X, Mic, Send, ChevronLeft, Home, Sparkles, PenLine, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -85,9 +85,11 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
 
   return (
     <div className="h-screen flex flex-col overflow-hidden theme-transition">
-      {/* Header */}
-      <header className="bg-primary text-primary-foreground shadow-md z-10 flex items-center justify-between p-3 h-16 theme-transition">
-        <div className="flex items-center">
+      {/* Header with cute design */}
+      <header className="bg-primary text-primary-foreground shadow-md z-10 flex items-center justify-between p-3 h-16 theme-transition relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-dots-pattern"></div>
+        
+        <div className="flex items-center relative z-10">
           {showBackButton ? (
             <Button 
               variant="ghost" 
@@ -117,7 +119,7 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
                   </Avatar>
                   <div>
                     <p className="font-medium">{user?.username}</p>
-                    <p className="text-xs opacity-80">Your Journal</p>
+                    <p className="text-xs opacity-80">TheLastDay Journal</p>
                   </div>
                 </div>
                 <nav className="p-4 space-y-2">
@@ -154,7 +156,7 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <CalendarIcon className="h-5 w-5 text-primary" />
+                        <BookOpen className="h-5 w-5 text-primary" />
                       </div>
                       <div>
                         <p className="font-medium">Journal</p>
@@ -175,7 +177,7 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Mic className="h-5 w-5 text-primary" />
+                        <PenLine className="h-5 w-5 text-primary" />
                       </div>
                       <div>
                         <p className="font-medium">Today's Entry</p>
@@ -225,13 +227,16 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="font-medium">{title || "ChatJournal"}</h1>
+              <h1 className="font-medium flex items-center gap-1">
+                {title || "TheLastDay"}
+                {!title && <Sparkles className="h-3 w-3 animate-pulse-subtle" />}
+              </h1>
               {!title && <p className="text-xs opacity-80">Your personal journal</p>}
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 relative z-10">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -293,13 +298,30 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
         </div>
       </header>
       
-      {/* Main content */}
+      {/* Main content with improved styling */}
       <main className={cn(
         "flex-1 overflow-auto theme-transition",
         getBackground(),
         "bg-cover bg-fixed"
       )}>
         <div className="container h-full mx-auto py-4 px-4 md:px-8">
+          {/* Add decorative elements for a more journal-like feel */}
+          <div className="absolute top-20 left-4 w-12 h-12 opacity-40 rotate-12 pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-primary/40">
+              <path d="M12 8L16 12L12 16" />
+              <path d="M8 12H16" />
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          </div>
+          
+          <div className="absolute bottom-8 right-8 w-16 h-16 opacity-30 -rotate-12 pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-primary/40">
+              <path d="M12 6v12" />
+              <path d="M6 12h12" />
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          </div>
+          
           {children}
         </div>
       </main>

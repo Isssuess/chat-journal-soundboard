@@ -2,6 +2,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sacramento&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Handlee&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Neucha&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Annie+Use+Your+Telescope&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Schoolbell&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -51,7 +68,25 @@
     --font-sans: 'Inter', sans-serif;
     --font-serif: Georgia, serif;
     --font-mono: monospace;
-    --font-cute: 'Indie Flower', 'Pacifico', cursive;
+    --font-cute: 'Indie Flower', cursive;
+    --font-pacifico: 'Pacifico', cursive;
+    --font-caveat: 'Caveat', cursive;
+    --font-amatic: 'Amatic SC', cursive;
+    --font-dancing: 'Dancing Script', cursive;
+    --font-shadows: 'Shadows Into Light', cursive;
+    --font-patrick: 'Patrick Hand', cursive;
+    --font-sacramento: 'Sacramento', cursive;
+    --font-architects: 'Architects Daughter', cursive;
+    --font-kalam: 'Kalam', cursive;
+    --font-handlee: 'Handlee', cursive;
+    --font-neucha: 'Neucha', cursive;
+    --font-gloria: 'Gloria Hallelujah', cursive;
+    --font-annie: 'Annie Use Your Telescope', cursive;
+    --font-gochi: 'Gochi Hand', cursive;
+    --font-schoolbell: 'Schoolbell', cursive;
+    --font-poppins: 'Poppins', sans-serif;
+    --font-nunito: 'Nunito', sans-serif;
+    --font-comic: 'Comic Neue', cursive;
   }
 
   .dark {
@@ -169,10 +204,81 @@
     @apply transition-colors duration-300 ease-in-out;
   }
   
-  /* Cute Journal Font Styles */
+  /* Font Styles */
   .font-cute {
     font-family: var(--font-cute);
-    @apply text-lg;
+  }
+  
+  .font-pacifico {
+    font-family: var(--font-pacifico);
+  }
+  
+  .font-caveat {
+    font-family: var(--font-caveat);
+  }
+  
+  .font-amatic {
+    font-family: var(--font-amatic);
+  }
+  
+  .font-dancing {
+    font-family: var(--font-dancing);
+  }
+  
+  .font-shadows {
+    font-family: var(--font-shadows);
+  }
+  
+  .font-patrick {
+    font-family: var(--font-patrick);
+  }
+  
+  .font-sacramento {
+    font-family: var(--font-sacramento);
+  }
+  
+  .font-architects {
+    font-family: var(--font-architects);
+  }
+  
+  .font-kalam {
+    font-family: var(--font-kalam);
+  }
+  
+  .font-handlee {
+    font-family: var(--font-handlee);
+  }
+  
+  .font-neucha {
+    font-family: var(--font-neucha);
+  }
+  
+  .font-gloria {
+    font-family: var(--font-gloria);
+  }
+  
+  .font-annie {
+    font-family: var(--font-annie);
+  }
+  
+  .font-gochi {
+    font-family: var(--font-gochi);
+  }
+  
+  .font-schoolbell {
+    font-family: var(--font-schoolbell);
+  }
+  
+  .font-poppins {
+    font-family: var(--font-poppins);
+  }
+  
+  .font-nunito {
+    font-family: var(--font-nunito);
+  }
+  
+  .font-comic {
+    font-family: var(--font-comic);
   }
 }
 
@@ -187,12 +293,20 @@
   }
   
   .sticky-note {
-    @apply rounded-md shadow-md transform rotate-1 transition-all duration-200;
-    background: #fefac0;
+    @apply rounded-md shadow-md transform transition-all duration-200;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+    position: relative;
   }
   
-  .sticky-note:hover {
-    @apply shadow-lg -translate-y-0.5 rotate-0;
+  .sticky-note::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: 40%;
+    height: 12px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 0 0 20px 20px;
   }
   
   .sticker {
@@ -203,6 +317,7 @@
   .pen-marker {
     @apply font-cute;
     color: #006699;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
   }
   
   .polaroid {
@@ -218,6 +333,110 @@
     top: -0.75rem;
     left: calc(50% - 2rem);
     transform: rotate(-5deg);
+  }
+  
+  .notebook-page {
+    background-color: white;
+    background-image: 
+      linear-gradient(#eee 1px, transparent 1px);
+    background-size: 100% 25px;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
+    position: relative;
+    border-radius: 7px;
+    overflow: hidden;
+  }
+  
+  .notebook-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 30px;
+    height: 100%;
+    width: 1px;
+    background: #f99;
+  }
+  
+  .cute-button {
+    @apply rounded-full px-4 py-2 shadow-md transition-all duration-200 text-white font-medium;
+    background: linear-gradient(45deg, #FF9A9E, #FAD0C4);
+    box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);
+  }
+  
+  .cute-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
+  }
+  
+  .cute-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(255, 154, 158, 0.3);
+  }
+  
+  .scrapbook-item {
+    @apply absolute bg-white rounded-lg shadow-md cursor-move transition-all duration-200;
+    min-width: 100px;
+    min-height: 100px;
+  }
+  
+  .scrapbook-item-handle {
+    @apply absolute top-0 left-0 right-0 h-6 bg-gray-100 rounded-t-lg cursor-move flex items-center justify-center;
+  }
+  
+  .scrapbook-item-image {
+    @apply w-full h-auto object-cover;
+    max-height: 200px;
+  }
+  
+  .scrapbook-item-text {
+    @apply p-3 text-gray-700;
+  }
+  
+  .washi-tape {
+    height: 15px;
+    width: 60px;
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-5deg);
+    opacity: 0.8;
+    border-radius: 2px;
+    z-index: 1;
+  }
+  
+  .washi-blue {
+    background: linear-gradient(90deg, #BDE8FF 0%, #7EB2E1 100%);
+  }
+  
+  .washi-pink {
+    background: linear-gradient(90deg, #FFD1DC 0%, #F49AC2 100%);
+  }
+  
+  .washi-green {
+    background: linear-gradient(90deg, #D4F8D3 0%, #96E8A1 100%);
+  }
+  
+  .washi-yellow {
+    background: linear-gradient(90deg, #FFF3B0 0%, #FFDD57 100%);
+  }
+  
+  .journal-theme-pastel {
+    background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+  }
+  
+  .journal-theme-lavender {
+    background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+  }
+  
+  .journal-theme-mint {
+    background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+  }
+  
+  .journal-theme-coral {
+    background: linear-gradient(120deg, #ff9a9e 0%, #fad0c4 100%);
+  }
+  
+  .journal-theme-sky {
+    background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
   }
 }
 
@@ -245,4 +464,31 @@
 
 .animate-fade-in-up {
   animation: fade-in-up 0.3s ease-out forwards;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+.animate-wiggle {
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.9); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop {
+  animation: pop 0.3s forwards;
+}
+
+.paper-texture {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23000000' fill-opacity='0.03' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+}
+
+.dot-texture {
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
 }
