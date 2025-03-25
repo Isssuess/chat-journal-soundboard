@@ -13,10 +13,12 @@ type ThemeProviderState = {
   theme: Theme;
   accentColor: string;
   chatBackground: string;
+  customBackground: string | null;
   fontStyle: string;
   setTheme: (theme: Theme) => void;
   setAccentColor: (color: string) => void;
   setChatBackground: (background: string) => void;
+  setCustomBackground: (imageUrl: string | null) => void;
   setFontStyle: (font: string) => void;
 };
 
@@ -24,10 +26,12 @@ const initialState: ThemeProviderState = {
   theme: "system",
   accentColor: "#128C7E", // Default WhatsApp green
   chatBackground: "default",
+  customBackground: null,
   fontStyle: "default",
   setTheme: () => null,
   setAccentColor: () => null,
   setChatBackground: () => null,
+  setCustomBackground: () => null,
   setFontStyle: () => null,
 };
 
@@ -49,6 +53,10 @@ export function ThemeProvider({
   
   const [chatBackground, setChatBackground] = useState<string>(
     () => localStorage.getItem(`${storageKey}-chat-bg`) || initialState.chatBackground
+  );
+  
+  const [customBackground, setCustomBackground] = useState<string | null>(
+    () => localStorage.getItem(`${storageKey}-custom-bg`) || initialState.customBackground
   );
   
   const [fontStyle, setFontStyle] = useState<string>(
@@ -84,6 +92,14 @@ export function ThemeProvider({
   }, [chatBackground, storageKey]);
   
   useEffect(() => {
+    if (customBackground) {
+      localStorage.setItem(`${storageKey}-custom-bg`, customBackground);
+    } else {
+      localStorage.removeItem(`${storageKey}-custom-bg`);
+    }
+  }, [customBackground, storageKey]);
+  
+  useEffect(() => {
     localStorage.setItem("journal-font", fontStyle);
     
     // Create a custom event to notify when font style changes
@@ -95,6 +111,7 @@ export function ThemeProvider({
     theme,
     accentColor,
     chatBackground,
+    customBackground,
     fontStyle,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
@@ -105,6 +122,9 @@ export function ThemeProvider({
     },
     setChatBackground: (background: string) => {
       setChatBackground(background);
+    },
+    setCustomBackground: (imageUrl: string | null) => {
+      setCustomBackground(imageUrl);
     },
     setFontStyle: (font: string) => {
       setFontStyle(font);

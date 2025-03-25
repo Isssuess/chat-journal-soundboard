@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ChatLayout from "@/components/ChatLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,13 +7,13 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
-import { Check, Lock, Paintbrush, ShieldCheck, UserCircle, Image, Moon, Sun, Monitor } from "lucide-react";
+import { Check, Lock, Paintbrush, ShieldCheck, UserCircle, Image, Moon, Sun, Monitor, UploadCloud, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
-  const { theme, setTheme, accentColor, setAccentColor, chatBackground, setChatBackground } = useTheme();
+  const { theme, setTheme, accentColor, setAccentColor, chatBackground, setChatBackground, customBackground, setCustomBackground, fontStyle, setFontStyle } = useTheme();
   const [username, setUsername] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -23,6 +22,7 @@ const Settings = () => {
   const [journalReminders, setJournalReminders] = useState(false);
   const [reminderTime, setReminderTime] = useState("20:00");
   const { toast } = useToast();
+  const backgroundImageRef = useRef<HTMLInputElement>(null);
   
   // Color options for theme customization
   const colorOptions = [
@@ -42,6 +42,14 @@ const Settings = () => {
     { name: "Light Pink", value: "pink", class: "bg-pink-100" },
     { name: "Light Orange", value: "orange", class: "bg-orange-100" },
     { name: "Light Green", value: "green", class: "bg-green-100" },
+  ];
+  
+  // Font options
+  const fontOptions = [
+    { name: "Default", value: "default", class: "font-sans" },
+    { name: "Serif", value: "serif", class: "font-serif" },
+    { name: "Monospace", value: "mono", class: "font-mono" },
+    { name: "Cute", value: "cute", class: "font-cute" },
   ];
   
   useEffect(() => {
@@ -73,6 +81,42 @@ const Settings = () => {
     
     loadSettings();
   }, []);
+  
+  // Handle background image upload
+  const handleBackgroundImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target?.result as string;
+      setCustomBackground(imageUrl);
+      toast({
+        title: "Background updated",
+        description: "Your custom background has been set",
+      });
+    };
+    
+    reader.readAsDataURL(file);
+  };
+  
+  // Remove custom background
+  const removeCustomBackground = () => {
+    setCustomBackground(null);
+    toast({
+      title: "Background removed",
+      description: "Your custom background has been removed",
+    });
+  };
   
   // Save account settings
   const saveAccountSettings = () => {
@@ -421,7 +465,7 @@ const Settings = () => {
                     Select a background pattern for your journal
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <RadioGroup defaultValue={chatBackground} onValueChange={setChatBackground}>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {backgroundOptions.map((bg) => (
@@ -456,6 +500,62 @@ const Settings = () => {
                       ))}
                     </div>
                   </RadioGroup>
+                  
+                  <div className="pt-4 border-t">
+                    <Label className="mb-2 block">Custom Background Image</Label>
+                    <div className="space-y-2">
+                      <input 
+                        type="file" 
+                        ref={backgroundImageRef}
+                        onChange={handleBackgroundImageUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => backgroundImageRef.current?.click()}
+                          className="flex items-center gap-2"
+                        >
+                          <UploadCloud className="h-4 w-4" />
+                          Upload Image
+                        </Button>
+                        
+                        {customBackground && (
+                          <Button
+                            variant="outline"
+                            onClick={removeCustomBackground}
+                            className="flex items-center gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Remove Custom Background
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {customBackground && (
+                        <div className="mt-2 relative w-40 h-24 overflow-hidden rounded-md border">
+                          <img 
+                            src={customBackground} 
+                            alt="Custom background" 
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={removeCustomBackground}
+                              className="text-white"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               
@@ -471,20 +571,16 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent>
                   <RadioGroup 
-                    defaultValue={localStorage.getItem("journal-font") || "default"}
-                    onValueChange={(value) => localStorage.setItem("journal-font", value)}
+                    defaultValue={fontStyle}
+                    onValueChange={setFontStyle}
                   >
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {[
-                        { name: "Default", value: "default", class: "font-sans" },
-                        { name: "Serif", value: "serif", class: "font-serif" },
-                        { name: "Monospace", value: "mono", class: "font-mono" }
-                      ].map((font) => (
+                      {fontOptions.map((font) => (
                         <div 
                           key={font.value} 
                           className={cn(
                             "flex items-center space-x-2 rounded-md border p-3 cursor-pointer hover:bg-muted/50 transition-colors",
-                            localStorage.getItem("journal-font") === font.value && "border-primary bg-primary/5"
+                            fontStyle === font.value && "border-primary bg-primary/5"
                           )}
                         >
                           <RadioGroupItem 
@@ -507,7 +603,12 @@ const Settings = () => {
               </Card>
               
               <Button 
-                onClick={saveAppearanceSettings}
+                onClick={() => {
+                  toast({
+                    title: "Appearance updated",
+                    description: "Your appearance settings have been saved."
+                  });
+                }}
                 className="max-w-[200px]"
               >
                 Save Appearance Settings

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { CalendarIcon, Settings, LogOut, Menu, X, Mic, Send, ChevronLeft } from "lucide-react";
+import { CalendarIcon, Settings, LogOut, Menu, X, Mic, Send, ChevronLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -18,7 +18,7 @@ interface ChatLayoutProps {
 }
 
 const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps) => {
-  const { theme, chatBackground } = useTheme();
+  const { theme, chatBackground, customBackground } = useTheme();
   const [user, setUser] = useState<{ username: string } | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
@@ -73,6 +73,10 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
 
   // Get background based on theme and selected background
   const getBackground = () => {
+    if (customBackground) {
+      return `bg-[url('${customBackground}')] bg-cover bg-center`;
+    }
+    
     if (chatBackground === "default") {
       return theme === "dark" ? "bg-chat-pattern-dark" : "bg-chat-pattern";
     }
@@ -117,6 +121,27 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
                   </div>
                 </div>
                 <nav className="p-4 space-y-2">
+                  <Link 
+                    to="/dashboard" 
+                    onClick={() => setIsSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-md transition-colors",
+                      isActive("/dashboard") 
+                        ? "bg-primary/10 text-primary" 
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Home className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Home</p>
+                        <p className="text-xs text-muted-foreground">Dashboard</p>
+                      </div>
+                    </div>
+                  </Link>
+                  
                   <Link 
                     to="/dashboard" 
                     onClick={() => setIsSidebarOpen(false)}
@@ -207,6 +232,16 @@ const ChatLayout = ({ children, title, showBackButton = false }: ChatLayoutProps
         </div>
         
         <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate("/dashboard")}
+            className="text-primary-foreground hover:bg-primary-foreground/10"
+          >
+            <Home className="h-4 w-4 mr-1" />
+            Home
+          </Button>
+          
           {!isMobile && !showBackButton && (
             <>
               <Button 

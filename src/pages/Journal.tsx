@@ -1,15 +1,18 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ChatLayout from "@/components/ChatLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Send, Sparkles, Mic, PaperclipIcon, Camera, ArrowLeft, ArrowRight, Calendar as CalendarIcon, FileImage, Palette } from "lucide-react";
+import { Send, Sparkles, Mic, PaperclipIcon, Camera, ArrowLeft, ArrowRight, Calendar as CalendarIcon, FileImage, Palette, Home, StickyNote, Edit, X } from "lucide-react";
 import { format, addDays, subDays, isToday, parseISO, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/ThemeProvider";
 
 const getJournalPrompts = () => {
   const prompts = [
@@ -34,6 +37,13 @@ const getJournalPrompts = () => {
   return shuffled.slice(0, 3);
 };
 
+interface Note {
+  id: string;
+  content: string;
+  position: { x: number; y: number };
+  color: string;
+}
+
 interface JournalEntry {
   date: string;
   content: string[];
@@ -43,6 +53,7 @@ interface JournalEntry {
     url: string;
     name: string;
   }[];
+  notes?: Note[];
 }
 
 const Journal = () => {
@@ -53,11 +64,17 @@ const Journal = () => {
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [fontStyle, setFontStyle] = useState(localStorage.getItem("journal-font") || "default");
+  const [isScrapbookMode, setIsScrapbookMode] = useState(false);
+  const [newNote, setNewNote] = useState<Partial<Note> | null>(null);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [isDragging, setIsDragging] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const { fontStyle } = useTheme();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const scrapbookRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -67,7 +84,7 @@ const Journal = () => {
   
   useEffect(() => {
     const handleStorageChange = () => {
-      setFontStyle(localStorage.getItem("journal-font") || "default");
+      // Re-render on font style changes
     };
     
     window.addEventListener("storage", handleStorageChange);
@@ -83,18 +100,21 @@ const Journal = () => {
           const existingEntry = entries.find(entry => entry.date === formattedDate);
           if (existingEntry) {
             setJournalEntry(existingEntry);
+            setNotes(existingEntry.notes || []);
           } else {
             setJournalEntry({
               date: formattedDate,
               content: [],
               lastUpdated: new Date().toISOString()
             });
+            setNotes([]);
             
             setTimeout(() => {
               const newEntry = {
                 date: formattedDate,
                 content: [`Welcome to your journal for ${displayDate}. How are you feeling today?`],
-                lastUpdated: new Date().toISOString()
+                lastUpdated: new Date().toISOString(),
+                notes: []
               };
               setJournalEntry(newEntry);
               
@@ -109,7 +129,8 @@ const Journal = () => {
         const newEntry = {
           date: formattedDate,
           content: [`Welcome to your journal for ${displayDate}. How are you feeling today?`],
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
+          notes: []
         };
         setJournalEntry(newEntry);
         localStorage.setItem("journalEntries", JSON.stringify([newEntry]));
@@ -138,6 +159,8 @@ const Journal = () => {
         return "font-serif";
       case "mono":
         return "font-mono";
+      case "cute":
+        return "font-cute";
       default:
         return "font-sans";
     }
@@ -188,6 +211,11 @@ const Journal = () => {
         textareaRef.current.focus();
       }
     }, 100);
+    
+    toast({
+      title: "Journal entry saved",
+      description: "Your thoughts have been added to your journal",
+    });
   };
   
   const usePrompt = (prompt: string) => {
@@ -314,6 +342,146 @@ const Journal = () => {
     }
   };
   
+  const addNote = () => {
+    setNewNote({
+      content: "",
+      position: { x: 50, y: 50 },
+      color: getRandomNoteColor()
+    });
+  };
+  
+  const getRandomNoteColor = () => {
+    const colors = [
+      '#FEF7CD', // yellow
+      '#FEC6A1', // orange
+      '#E5DEFF', // purple
+      '#FFDEE2', // pink
+      '#FDE1D3', // peach
+      '#D3E4FD', // blue
+      '#F2FCE2', // green
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+  
+  const saveNote = () => {
+    if (!newNote || !newNote.content?.trim()) {
+      setNewNote(null);
+      return;
+    }
+    
+    const note: Note = {
+      id: Date.now().toString(),
+      content: newNote.content,
+      position: newNote.position || { x: 50, y: 50 },
+      color: newNote.color || getRandomNoteColor()
+    };
+    
+    const updatedNotes = [...notes, note];
+    setNotes(updatedNotes);
+    
+    if (journalEntry) {
+      const updatedEntry: JournalEntry = {
+        ...journalEntry,
+        notes: updatedNotes,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      setJournalEntry(updatedEntry);
+      saveJournalEntry(updatedEntry);
+    }
+    
+    setNewNote(null);
+    
+    toast({
+      title: "Note added",
+      description: "Your note has been added to the scrapbook"
+    });
+  };
+  
+  const updateNote = (id: string, content: string) => {
+    const updatedNotes = notes.map(note => 
+      note.id === id ? { ...note, content } : note
+    );
+    
+    setNotes(updatedNotes);
+    
+    if (journalEntry) {
+      const updatedEntry: JournalEntry = {
+        ...journalEntry,
+        notes: updatedNotes,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      setJournalEntry(updatedEntry);
+      saveJournalEntry(updatedEntry);
+    }
+  };
+  
+  const deleteNote = (id: string) => {
+    const updatedNotes = notes.filter(note => note.id !== id);
+    setNotes(updatedNotes);
+    
+    if (journalEntry) {
+      const updatedEntry: JournalEntry = {
+        ...journalEntry,
+        notes: updatedNotes,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      setJournalEntry(updatedEntry);
+      saveJournalEntry(updatedEntry);
+    }
+    
+    toast({
+      title: "Note deleted",
+      description: "Your note has been removed from the scrapbook"
+    });
+  };
+  
+  const startDragging = (e: React.MouseEvent, id: string) => {
+    const note = notes.find(note => note.id === id);
+    if (!note) return;
+    
+    setIsDragging(id);
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+  
+  const onDrag = (e: React.MouseEvent) => {
+    if (!isDragging || !scrapbookRef.current) return;
+    
+    const scrapbookRect = scrapbookRef.current.getBoundingClientRect();
+    const x = e.clientX - scrapbookRect.left - dragOffset.x;
+    const y = e.clientY - scrapbookRect.top - dragOffset.y;
+    
+    const updatedNotes = notes.map(note => 
+      note.id === isDragging 
+        ? { ...note, position: { x, y } } 
+        : note
+    );
+    
+    setNotes(updatedNotes);
+  };
+  
+  const stopDragging = () => {
+    if (!isDragging) return;
+    
+    if (journalEntry) {
+      const updatedEntry: JournalEntry = {
+        ...journalEntry,
+        notes: notes,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      saveJournalEntry(updatedEntry);
+    }
+    
+    setIsDragging(null);
+  };
+  
   return (
     <ChatLayout title={displayDate} showBackButton>
       <div className={cn("h-full flex flex-col", getFontClass())}>
@@ -357,8 +525,22 @@ const Journal = () => {
               onClick={() => navigate("/dashboard")}
               className="bg-white/70 dark:bg-background/50 backdrop-blur-sm"
             >
-              <CalendarIcon className="h-4 w-4 mr-2" />
+              <Home className="h-4 w-4 mr-2" />
               Dashboard
+            </Button>
+            
+            <Button 
+              variant={isScrapbookMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsScrapbookMode(!isScrapbookMode)}
+              className={cn(
+                isScrapbookMode 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-white/70 dark:bg-background/50 backdrop-blur-sm"
+              )}
+            >
+              <StickyNote className="h-4 w-4 mr-2" />
+              {isScrapbookMode ? "Journal Mode" : "Scrapbook Mode"}
             </Button>
           </div>
           
@@ -375,194 +557,269 @@ const Journal = () => {
           )}
         </div>
         
-        <div className="flex-1 overflow-y-auto custom-scrollbar mb-4 theme-transition">
-          <div className="flex flex-col space-y-1 p-2">
-            {journalEntry?.content.map((content, index) => {
-              const isUserMessage = index > 0;
-              
-              return (
-                <div
-                  key={index}
-                  className={cn(
-                    "chat-bubble",
-                    isUserMessage ? "chat-bubble-user" : "chat-bubble-app"
-                  )}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  {content.startsWith("[Image attached:") ? (
-                    <div className="flex flex-col">
-                      <span>{content}</span>
-                      {journalEntry.attachments && (
-                        <img 
-                          src={journalEntry.attachments.find(a => 
-                            a.type === "image" && content.includes(a.name)
-                          )?.url}
-                          alt="Journal attachment"
-                          className="mt-2 max-w-full max-h-64 rounded-md"
-                        />
-                      )}
-                    </div>
-                  ) : content.startsWith("[Attached file:") ? (
-                    <div className="flex flex-col">
-                      <span>{content}</span>
-                      {journalEntry.attachments && (
-                        <a 
-                          href={journalEntry.attachments.find(a => 
-                            a.type === "file" && content.includes(a.name)
-                          )?.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 flex items-center text-primary hover:underline"
-                        >
-                          <PaperclipIcon className="h-4 w-4 mr-1" />
-                          Download attached file
-                        </a>
-                      )}
-                    </div>
-                  ) : (
-                    content
-                  )}
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-        
-        <div className="mb-4 overflow-x-auto custom-scrollbar">
-          <div className="flex space-x-2">
-            {prompts.map((prompt, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                className="whitespace-nowrap bg-white/70 dark:bg-background/50 backdrop-blur-sm"
-                onClick={() => usePrompt(prompt)}
-                disabled={isLoadingPrompts}
+        {isScrapbookMode ? (
+          <div 
+            className="flex-1 bg-white/80 dark:bg-black/20 backdrop-blur-sm rounded-lg p-4 relative overflow-hidden mb-4"
+            ref={scrapbookRef}
+            onMouseMove={onDrag}
+            onMouseUp={stopDragging}
+            onMouseLeave={stopDragging}
+          >
+            {notes.map((note) => (
+              <div 
+                key={note.id}
+                className="absolute shadow-md rounded-md p-3 w-64 cursor-move"
+                style={{
+                  top: `${note.position.y}px`,
+                  left: `${note.position.x}px`,
+                  backgroundColor: note.color,
+                  zIndex: isDragging === note.id ? 10 : 1
+                }}
+                onMouseDown={(e) => startDragging(e, note.id)}
               >
-                <Sparkles className="h-3 w-3 mr-2 text-primary" />
-                {prompt}
-              </Button>
+                <div className="flex justify-between items-start mb-1">
+                  <div className="w-4 h-4 bg-white rounded-full opacity-50" />
+                  <div className="flex gap-1">
+                    <button 
+                      className="text-gray-600 rounded-full p-1 hover:bg-black/10 transition-colors"
+                      onClick={() => deleteNote(note.id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  className="w-full bg-transparent border-none focus:outline-none resize-none"
+                  value={note.content}
+                  onChange={(e) => updateNote(note.id, e.target.value)}
+                  rows={5}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
             ))}
+            
+            {!newNote && (
+              <Button
+                className="fixed bottom-8 right-8 rounded-full h-14 w-14 shadow-lg"
+                onClick={addNote}
+              >
+                <Plus className="h-6 w-6" />
+              </Button>
+            )}
+            
+            {newNote && (
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-xl w-80 p-4 z-20">
+                <h3 className="text-lg font-medium mb-2">Add New Note</h3>
+                <textarea
+                  className="w-full p-2 border rounded-md mb-3 resize-none"
+                  placeholder="Write your note here..."
+                  rows={6}
+                  value={newNote.content || ''}
+                  onChange={(e) => setNewNote({...newNote, content: e.target.value})}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setNewNote(null)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={saveNote}>
+                    Add Note
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-        
-        <div className="relative theme-transition">
-          <Textarea
-            ref={textareaRef}
-            placeholder="Write your journal entry..."
-            value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              setIsTyping(e.target.value.trim().length > 0);
-            }}
-            onKeyDown={handleKeyDown}
-            className={cn("message-input bg-white/90 dark:bg-background/70 backdrop-blur-sm shadow-md pr-24", getFontClass())}
-            rows={1}
-          />
-          
-          <div className="absolute right-3 bottom-3 flex items-center gap-2">
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              className="sr-only"
-              onChange={handleFileSelect}
-            />
+        ) : (
+          <>
+            <div className="flex-1 overflow-y-auto custom-scrollbar mb-4 theme-transition">
+              <div className="flex flex-col space-y-1 p-2">
+                {journalEntry?.content.map((content, index) => {
+                  const isUserMessage = index > 0;
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={cn(
+                        "chat-bubble",
+                        isUserMessage ? "chat-bubble-user" : "chat-bubble-app"
+                      )}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      {content.startsWith("[Image attached:") ? (
+                        <div className="flex flex-col">
+                          <span>{content}</span>
+                          {journalEntry.attachments && (
+                            <img 
+                              src={journalEntry.attachments.find(a => 
+                                a.type === "image" && content.includes(a.name)
+                              )?.url}
+                              alt="Journal attachment"
+                              className="mt-2 max-w-full max-h-64 rounded-md"
+                            />
+                          )}
+                        </div>
+                      ) : content.startsWith("[Attached file:") ? (
+                        <div className="flex flex-col">
+                          <span>{content}</span>
+                          {journalEntry.attachments && (
+                            <a 
+                              href={journalEntry.attachments.find(a => 
+                                a.type === "file" && content.includes(a.name)
+                              )?.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 flex items-center text-primary hover:underline"
+                            >
+                              <PaperclipIcon className="h-4 w-4 mr-1" />
+                              Download attached file
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        content
+                      )}
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
             
-            <input 
-              type="file" 
-              ref={imageInputRef}
-              className="sr-only"
-              accept="image/*"
-              onChange={handleImageSelect}
-            />
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
-                    onClick={() => fileInputRef.current?.click()}
+            <div className="mb-4 overflow-x-auto custom-scrollbar">
+              <div className="flex space-x-2">
+                {prompts.map((prompt, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    className="whitespace-nowrap bg-white/70 dark:bg-background/50 backdrop-blur-sm"
+                    onClick={() => usePrompt(prompt)}
+                    disabled={isLoadingPrompts}
                   >
-                    <PaperclipIcon className="h-4 w-4" />
+                    <Sparkles className="h-3 w-3 mr-2 text-primary" />
+                    {prompt}
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Attach file</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                ))}
+              </div>
+            </div>
             
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
-                    onClick={() => imageInputRef.current?.click()}
-                  >
-                    <FileImage className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Attach image</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
-                    onClick={() => navigate("/settings")}
-                  >
-                    <Palette className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Customize appearance</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
-                  >
-                    <Mic className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Voice recording (coming soon)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <Button 
-              size="icon" 
-              className={cn(
-                "h-8 w-8 rounded-full transition-all duration-300",
-                isTyping 
-                  ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-              )}
-              onClick={sendMessage}
-              disabled={!isTyping}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+            <div className="relative theme-transition">
+              <Textarea
+                ref={textareaRef}
+                placeholder="Write your journal entry..."
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  setIsTyping(e.target.value.trim().length > 0);
+                }}
+                onKeyDown={handleKeyDown}
+                className={cn("message-input bg-white/90 dark:bg-background/70 backdrop-blur-sm shadow-md pr-24", getFontClass())}
+                rows={1}
+              />
+              
+              <div className="absolute right-3 bottom-3 flex items-center gap-2">
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  className="sr-only"
+                  onChange={handleFileSelect}
+                />
+                
+                <input 
+                  type="file" 
+                  ref={imageInputRef}
+                  className="sr-only"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                />
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <PaperclipIcon className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Attach file</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
+                        onClick={() => imageInputRef.current?.click()}
+                      >
+                        <FileImage className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Attach image</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
+                        onClick={() => navigate("/settings")}
+                      >
+                        <Palette className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Customize appearance</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full opacity-70 hover:opacity-100"
+                      >
+                        <Mic className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Voice recording (coming soon)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <Button 
+                  size="icon" 
+                  className={cn(
+                    "h-8 w-8 rounded-full transition-all duration-300",
+                    isTyping 
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                  )}
+                  onClick={sendMessage}
+                  disabled={!isTyping}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </ChatLayout>
   );
