@@ -13,18 +13,22 @@ type ThemeProviderState = {
   theme: Theme;
   accentColor: string;
   chatBackground: string;
+  fontStyle: string;
   setTheme: (theme: Theme) => void;
   setAccentColor: (color: string) => void;
   setChatBackground: (background: string) => void;
+  setFontStyle: (font: string) => void;
 };
 
 const initialState: ThemeProviderState = {
   theme: "system",
   accentColor: "#128C7E", // Default WhatsApp green
   chatBackground: "default",
+  fontStyle: "default",
   setTheme: () => null,
   setAccentColor: () => null,
   setChatBackground: () => null,
+  setFontStyle: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -45,6 +49,10 @@ export function ThemeProvider({
   
   const [chatBackground, setChatBackground] = useState<string>(
     () => localStorage.getItem(`${storageKey}-chat-bg`) || initialState.chatBackground
+  );
+  
+  const [fontStyle, setFontStyle] = useState<string>(
+    () => localStorage.getItem("journal-font") || initialState.fontStyle
   );
 
   useEffect(() => {
@@ -74,11 +82,20 @@ export function ThemeProvider({
   useEffect(() => {
     localStorage.setItem(`${storageKey}-chat-bg`, chatBackground);
   }, [chatBackground, storageKey]);
+  
+  useEffect(() => {
+    localStorage.setItem("journal-font", fontStyle);
+    
+    // Create a custom event to notify when font style changes
+    const event = new Event("storage");
+    window.dispatchEvent(event);
+  }, [fontStyle]);
 
   const value = {
     theme,
     accentColor,
     chatBackground,
+    fontStyle,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
@@ -88,6 +105,9 @@ export function ThemeProvider({
     },
     setChatBackground: (background: string) => {
       setChatBackground(background);
+    },
+    setFontStyle: (font: string) => {
+      setFontStyle(font);
     },
   };
 

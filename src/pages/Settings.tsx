@@ -374,7 +374,7 @@ const Settings = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup defaultValue={accentColor}>
+                  <RadioGroup defaultValue={accentColor} onValueChange={setAccentColor}>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {colorOptions.map((color) => (
                         <div 
@@ -388,9 +388,6 @@ const Settings = () => {
                           <RadioGroupItem 
                             value={color.value} 
                             id={`color-${color.value}`}
-                            className="sr-only"
-                            checked={accentColor === color.value}
-                            onCheckedChange={() => setAccentColor(color.value)}
                           />
                           <div className="flex items-center gap-3">
                             <div 
@@ -425,7 +422,7 @@ const Settings = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup defaultValue={chatBackground}>
+                  <RadioGroup defaultValue={chatBackground} onValueChange={setChatBackground}>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {backgroundOptions.map((bg) => (
                         <div 
@@ -439,9 +436,6 @@ const Settings = () => {
                           <RadioGroupItem 
                             value={bg.value} 
                             id={`bg-${bg.value}`}
-                            className="sr-only"
-                            checked={chatBackground === bg.value}
-                            onCheckedChange={() => setChatBackground(bg.value)}
                           />
                           <div className="flex items-center gap-3">
                             <div className={cn(
@@ -458,6 +452,53 @@ const Settings = () => {
                           {chatBackground === bg.value && (
                             <Check className="h-4 w-4 ml-auto text-primary" />
                           )}
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/90 dark:bg-card/90 shadow-sm backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Paintbrush className="h-5 w-5 text-primary" />
+                    Font Style
+                  </CardTitle>
+                  <CardDescription>
+                    Choose a font style for your journal
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RadioGroup 
+                    defaultValue={localStorage.getItem("journal-font") || "default"}
+                    onValueChange={(value) => localStorage.setItem("journal-font", value)}
+                  >
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {[
+                        { name: "Default", value: "default", class: "font-sans" },
+                        { name: "Serif", value: "serif", class: "font-serif" },
+                        { name: "Monospace", value: "mono", class: "font-mono" }
+                      ].map((font) => (
+                        <div 
+                          key={font.value} 
+                          className={cn(
+                            "flex items-center space-x-2 rounded-md border p-3 cursor-pointer hover:bg-muted/50 transition-colors",
+                            localStorage.getItem("journal-font") === font.value && "border-primary bg-primary/5"
+                          )}
+                        >
+                          <RadioGroupItem 
+                            value={font.value} 
+                            id={`font-${font.value}`}
+                          />
+                          <div className="flex items-center gap-3">
+                            <Label 
+                              htmlFor={`font-${font.value}`}
+                              className={cn("cursor-pointer font-normal", font.class)}
+                            >
+                              {font.name}
+                            </Label>
+                          </div>
                         </div>
                       ))}
                     </div>
