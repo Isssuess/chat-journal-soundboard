@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Send, Sparkles, Mic, PaperclipIcon, Camera, ArrowLeft, ArrowRight, Calendar as CalendarIcon, FileImage, Palette, Home, StickyNote, Edit, X } from "lucide-react";
+import { Send, Sparkles, Mic, PaperclipIcon, Camera, ArrowLeft, ArrowRight, Calendar as CalendarIcon, FileImage, Palette, Home, StickyNote, Edit, X, Plus } from "lucide-react";
 import { format, addDays, subDays, isToday, parseISO, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
